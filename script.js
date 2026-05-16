@@ -196,4 +196,126 @@ function carregarOpcoesDeTemasPorGenero() {
         option.innerText = listaTemasUsar[chave].label;
         seletor.appendChild(option);
     });
+
+    if (configVisual.tema && listaTemasUsar[configVisual.tema]) {
+        seletor.value = configVisual.tema;
+        mudarTema(configVisual.tema);
+    }
+}
+
+function verificarSessao() {
+    const telaInicial = document.getElementById('tela-inicial');
+    const telaDiario = document.getElementById('tela-diario');
+    
+    if (contaLogada) {
+        if (telaInicial) telaInicial.classList.add('desativado');
+        if (telaDiario) telaDiario.classList.remove('desativado');
+        atualizarElementosModal();
+        carregarOpcoesDeTemasPorGenero();
+    } else {
+        if (telaInicial) telaInicial.classList.remove('desativado');
+        if (telaDiario) telaDiario.classList.add('desativado');
+    }
+}
+
+function atualizarElementosModal() {
+    if (!contaLogada) return;
+    
+    const perfNome = document.getElementById('perf-nome');
+    const perfEmail = document.getElementById('perf-email');
+    const avatarLetras = document.getElementById('avatar-letras');
+    const avatarLetrasGrande = document.getElementById('avatar-letras-grande');
+    const perfGeneroEditar = document.getElementById('perf-genero-editar');
+    
+    if (perfNome) perfNome.innerText = contaLogada.nome;
+    if (perfEmail) perfEmail.innerText = contaLogada.email;
+    if (perfGeneroEditar) perfGeneroEditar.value = contaLogada.genero;
+    
+    const primeiraLetra = contaLogada.nome.charAt(0).toUpperCase();
+    if (avatarLetras) avatarLetras.innerText = primeiraLetra;
+    if (avatarLetrasGrande) avatarLetrasGrande.innerText = primaLetra = primeiraLetra;
+    
+    const avatarTopoImg = document.getElementById('avatar-topo-img');
+    const avatarPerfilGrande = document.getElementById('avatar-perfil-grande');
+
+    if (contaLogada.avatar) {
+        if (avatarTopoImg) {
+            avatarTopoImg.style.backgroundImage = `url(${contaLogada.avatar})`;
+            avatarTopoImg.innerText = '';
+        }
+        if (avatarPerfilGrande) {
+            avatarPerfilGrande.style.backgroundImage = `url(${contaLogada.avatar})`;
+            avatarPerfilGrande.innerText = '';
+        }
+    } else {
+        if (avatarTopoImg) {
+            avatarTopoImg.style.backgroundImage = 'none';
+            avatarTopoImg.innerText = primeiraLetra;
+        }
+        if (avatarPerfilGrande) {
+            avatarPerfilGrande.style.backgroundImage = 'none';
+            avatarPerfilGrande.innerText = primeiraLetra;
+        }
+    }
+}
+
+function salvarDadosUsuarioNoDB() {
+    if (!contaLogada) return;
+    const index = usuariosCadastrados.findIndex(u => u.email === contaLogada.email);
+    if (index !== -1) {
+        usuariosCadastrados[index] = contaLogada;
+        localStorage.setItem('diario_usuarios_db_v10', JSON.stringify(usuariosCadastrados));
+        localStorage.setItem('diario_sessao_ativa_v10', JSON.stringify(contaLogada));
+    }
+}
+
+function fazerLogout() {
+    contaLogada = null;
+    localStorage.removeItem('diario_sessao_ativa_v10');
+    fecharModalPerfil();
+    verificarSessao();
+    lancarToast('Diário trancado com sucesso!', 'info');
+}
+
+function mudarFonte(fonte) {
+    document.body.style.fontFamily = fonte; 
+    configVisual.fonte = fonte;
+    localStorage.setItem('diario_config_v10', JSON.stringify(configVisual));
+}
+
+function mudarTema(chaveTema) {
+    const listaTemasUsar = (contaLogada && contaLogada.genero === 'Masculino') ? temasMasculinos : temasFemininoEOutros;
+    const temaEscolhido = listaTemasUsar[chaveTema] || listaTemasUsar['vintage'];
+    
+    document.documentElement.style.setProperty('--cor-fundo', temaEscolhido.fundo);
+    document.documentElement.style.setProperty('--cor-texto', temaEscolhido.texto);
+    document.documentElement.style.setProperty('--cor-card', temaEscolhido.card);
+    document.documentElement.style.setProperty('--cor-botao', temaEscolhido.botao);
+    
+    configVisual.tema = chaveTema;
+    localStorage.setItem('diario_config_v10', JSON.stringify(configVisual));
+}
+
+function atualizarGeneroPerfil(novoGenero) {
+    if (!contaLogada) return;
+    contaLogada.genero = novoGenero;
+    salvarDadosUsuarioNoDB();
+    carregarOpcoesDeTemasPorGenero();
+    lancarToast('Gênero e catálogo de temas atualizados!', 'sucesso');
+}
+
+function abrirModalPerfil() {
+    const modal = document.getElementById('modal-perfil');
+    if (modal) modal.classList.remove('desativado');
+}
+
+function fecharModalPerfil() {
+    const modal = document.getElementById('modal-perfil');
+    if (modal) modal.classList.add('desativado');
+}
+
+function fecharModalPerfilComCliqueFora(event) {
+    if (event.target.id === 'modal-perfil') {
+        fecharModalPerfil();
+    }
 }
