@@ -1,0 +1,373 @@
+:root {
+    --cor-fundo: #f4eae1;
+    --cor-texto: #2c2c2c;
+    --cor-card: #ffffff;
+    --cor-botao: #8b5a2b;
+    --cor-botao-texto: #ffffff;
+    --fonte-diario: 'Georgia', serif;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    transition: background 0.3s, color 0.3s;
+}
+
+body {
+    background-color: var(--cor-fundo);
+    color: var(--cor-texto);
+    font-family: var(--fonte-diario);
+    min-height: 100vh;
+    padding: 5px;
+}
+
+/* --- TOAST NOTIFICATIONS --- */
+#container-toast {
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 90%;
+    width: 350px;
+}
+
+.toast {
+    background: #2b2d42;
+    color: #fff;
+    padding: 14px 18px;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-family: sans-serif;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    animation: slideIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(120%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+.toast.sucesso { background: #1b4332; border-left: 6px solid #52b788; }
+.toast.aviso { background: #7f1d1d; border-left: 6px solid #f87171; }
+.toast.info { background: #1e3a8a; border-left: 6px solid #60a5fa; }
+
+/* --- ALINHAMENTO E CENTRALIZAÇÃO ESTÁVEL DO ÍCONE DO OLHO --- */
+.container-senha-olho {
+    position: relative;
+    width: 100%;
+    display: flex;
+    align-items: center;
+}
+.container-senha-olho input {
+    padding-right: 48px !important;
+    width: 100%;
+}
+.btn-olho {
+    position: absolute;
+    right: 14px;
+    top: 0;
+    bottom: 0;
+    margin: auto 0;
+    height: 24px;
+    background: transparent !important;
+    border: none !important;
+    width: auto !important;
+    padding: 0 !important;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+.ic-olho {
+    width: 22px;
+    height: 22px;
+    stroke: var(--cor-texto);
+    opacity: 0.6;
+}
+.btn-olho:hover .ic-olho {
+    opacity: 1;
+}
+
+/* --- DESIGN DA AGENDA --- */
+.agenda-design-wrapper {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 4px;
+}
+.agenda-card-input {
+    background: rgba(0,0,0,0.02);
+    border: 1px solid rgba(0,0,0,0.08);
+    border-radius: 12px;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.agenda-card-input:focus-within {
+    border-color: var(--cor-botao);
+    background: var(--cor-card);
+}
+.agenda-icon { font-size: 1.3rem; }
+.agenda-input-info { display: flex; flex-direction: column; width: 100%; }
+.agenda-input-info label {
+    font-size: 0.72rem !important;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    opacity: 0.6;
+    margin-bottom: 2px !important;
+}
+.agenda-input-info input {
+    border: none !important;
+    padding: 0 !important;
+    background: transparent !important;
+    font-size: 0.9rem !important;
+    font-weight: bold;
+    color: var(--cor-texto);
+    outline: none;
+    cursor: pointer;
+}
+
+/* --- SEÇÃO LEMBRETES AGENDA --- */
+.inserir-lembrete-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 15px;
+}
+#lista-lembretes {
+    list-style: none;
+    text-align: left;
+    max-height: 260px;
+    overflow-y: auto;
+}
+.item-lembrete {
+    background: rgba(0,0,0,0.03);
+    border-radius: 10px;
+    margin-bottom: 8px;
+    font-size: 0.85rem;
+    border-left: 4px solid var(--cor-botao);
+    padding: 10px;
+}
+.item-lembrete-topo {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+.item-lembrete-prazo { font-size: 0.75rem; opacity: 0.6; }
+.btn-remover-lembrete {
+    background: transparent !important;
+    color: #ff4d4d !important;
+    width: auto !important;
+    padding: 0px 4px !important;
+    font-size: 0.9rem;
+}
+
+/* --- AUTENTICAÇÃO --- */
+.container-central {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 10px;
+}
+.card-login {
+    max-width: 450px;
+    width: 100%;
+    padding: 30px 15px;
+    border-radius: 24px;
+    text-align: center;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.06);
+}
+.cadeado-icone { font-size: 3rem; margin-bottom: 10px; }
+.subtitulo-login { font-size: 0.8rem; opacity: 0.7; margin-bottom: 20px; }
+.abas-autenticacao {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    background: rgba(0,0,0,0.05);
+    padding: 5px;
+    border-radius: 12px;
+}
+.aba-btn {
+    background: transparent;
+    color: var(--cor-texto);
+    padding: 10px;
+    font-size: 0.85rem;
+    border-radius: 8px;
+    box-shadow: none;
+}
+.aba-btn.ativa {
+    background: var(--cor-card);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+.grupo-input input, .grupo-input select { margin-bottom: 12px; }
+.upload-avatar-container { margin-bottom: 12px; }
+.label-avatar-input, .btn-mudar-foto {
+    display: block;
+    padding: 12px;
+    background: rgba(0,0,0,0.02);
+    border: 2px dashed rgba(0,0,0,0.12);
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: bold;
+}
+
+/* --- LAYOUT DO DIÁRIO --- */
+.container-diario {
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 10px;
+}
+.barra-superior {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    background-color: var(--cor-card);
+    border-radius: 16px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+}
+.logo-diario { font-weight: bold; font-size: 1.1rem; }
+.avatar-topo {
+    width: 42px;
+    height: 42px;
+    background-color: var(--cor-botao);
+    color: var(--cor-botao-texto);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    cursor: pointer;
+    background-size: cover;
+    background-position: center;
+}
+
+/* --- MODAL DO PERFIL --- */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1500;
+}
+.modal-conteudo {
+    max-width: 400px;
+    width: 90%;
+    position: relative;
+    padding: 30px 20px;
+    text-align: center;
+}
+.fechar-modal {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 1.8rem;
+    cursor: pointer;
+    opacity: 0.6;
+}
+.perfil-alinhamento {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+    gap: 10px;
+}
+.avatar-grande {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background-color: var(--cor-botao);
+    color: var(--cor-botao-texto);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    font-weight: bold;
+    background-size: cover;
+    background-position: center;
+}
+.perfil-dados-lista p {
+    font-size: 0.95rem;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+.btn-logout { background-color: #d90429; color: white; margin-top: 10px; }
+
+/* RESPONSIVIDADE */
+.layout-grade { display: flex; flex-direction: column; gap: 20px; }
+@media (min-width: 768px) {
+    .layout-grade { display: grid; grid-template-columns: 1fr 2.6fr; }
+}
+.painel {
+    background-color: var(--cor-card);
+    padding: 20px;
+    border-radius: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+}
+.espacador-titulo {
+    margin-top: 40px;
+    border-top: 2px dashed rgba(0,0,0,0.08);
+    padding-top: 20px;
+    margin-bottom: 10px;
+}
+
+/* CAMPOS FORMULÁRIO */
+.secao-perguntas {
+    background: rgba(0,0,0,0.015);
+    padding: 12px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    border: 1px dashed rgba(0,0,0,0.08);
+}
+.pergunta-item { margin-bottom: 15px; }
+.pergunta-item label { display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 6px; }
+.humor-seletores, .clima-seletores { display: flex; flex-wrap: wrap; gap: 6px; }
+.humor-seletores label, .clima-seletores label {
+    font-weight: normal; background: var(--cor-card); padding: 8px 12px;
+    border: 1px solid rgba(0,0,0,0.1); border-radius: 20px; cursor: pointer; font-size: 0.85rem;
+}
+.escala-container { display: flex; align-items: center; gap: 10px; }
+.badge-escala { background-color: var(--cor-botao); color: var(--cor-botao-texto); padding: 4px 8px; border-radius: 6px; font-weight: bold; font-size: 0.85rem; white-space: nowrap; }
+
+input[type="text"], input[type="email"], input[type="password"], textarea, select {
+    width: 100%; padding: 12px; border: 2px solid rgba(0,0,0,0.06);
+    border-radius: 10px; font-family: inherit; font-size: 1rem;
+    background-color: var(--cor-card); color: var(--cor-texto);
+}
+button { background-color: var(--cor-botao); color: var(--cor-botao-texto); border: none; padding: 14px 20px; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; font-size: 1rem; }
+button:hover { opacity: 0.9; }
+
+.label-upload { display: block; padding: 12px; border: 2px dashed rgba(0,0,0,0.1); border-radius: 10px; text-align: center; cursor: pointer; margin-bottom: 15px; font-size: 0.85rem; }
+.label-upload input { display: none; }
+
+/* POSTS */
+.post { background-color: var(--cor-card); padding: 18px; border-radius: 18px; margin-top: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.02); }
+.post-topo { display: flex; justify-content: space-between; font-size: 0.8rem; opacity: 0.5; margin-bottom: 10px; }
+.post-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.tag { font-size: 0.75rem; padding: 3px 9px; background-color: rgba(0,0,0,0.04); border-radius: 6px; }
+.post-img { max-width: 100%; max-height: 300px; object-fit: cover; border-radius: 12px; margin-top: 15px; }
+.btn-deletar { background-color: #e63946; color: white; width: auto; padding: 6px 12px; font-size: 0.8rem; margin-top: 15px; }
+
+.config-item { margin-bottom: 15px; }
+.config-item label { display: block; font-size: 0.85rem; margin-bottom: 5px; }
+.desativado { display: none !important; }

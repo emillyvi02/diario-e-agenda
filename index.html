@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Diário Pessoal Seguro</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="container-toast"></div>
+
+    <div id="tela-inicial" class="container-central">
+        <div class="painel card-login">
+            <div class="cadeado-icone">🔒</div>
+            <h1>Diário Seguro</h1>
+            <p class="subtitulo-login">Sua senha deve conter obrigatoriamente entre 4 e 7 dígitos.</p>
+            
+            <div class="abas-autenticacao">
+                <button id="aba-entrar" class="aba-btn ativa" onclick="mudarAbaAuth('login')">Fazer Login</button>
+                <button id="aba-cadastrar" class="aba-btn" onclick="mudarAbaAuth('cadastro')">Criar Conta</button>
+            </div>
+
+            <div class="grupo-input">
+                <input type="text" id="auth-nome" placeholder="Seu Nome Completo..." class="campo-cadastro">
+                
+                <select id="auth-genero" class="campo-cadastro">
+                    <option value="" disabled selected>Escolha seu Gênero...</option>
+                    <option value="Feminino">Feminino</option>
+                    <option value="Masculino">Masculino</option>
+                    <option value="Não-Binário">Não-Binário</option>
+                    <option value="Transgênero">Transgênero</option>
+                    <option value="Outro">Outro</option>
+                </select>
+
+                <div class="campo-cadastro upload-avatar-container">
+                    <label for="auth-avatar" id="lbl-auth-avatar" class="label-avatar-input">📸 Adicionar Foto de Perfil (Opcional)</label>
+                    <input type="file" id="auth-avatar" accept="image/*">
+                </div>
+
+                <input type="email" id="auth-email" placeholder="Seu E-mail...">
+                
+                <div class="container-senha-olho">
+                    <input type="password" id="auth-senha" placeholder="Sua Senha (4 a 7 caracteres)...">
+                    <button type="button" class="btn-olho" onclick="alternarVisibilidadeSenha()" aria-label="Ver senha">
+                        <svg class="ic-olho" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <button id="btn-submit-auth" onclick="processarAutenticacao()">Entrar no Diário 🔑</button>
+        </div>
+    </div>
+
+    <div id="tela-diario" class="container-diario desativado">
+        
+        <nav class="barra-superior">
+            <div class="logo-diario">📝 Diário Secreto & Agenda</div>
+            
+            <div class="avatar-topo" id="avatar-topo-img" onclick="abrirModalPerfil()">
+                <span id="avatar-letras">U</span>
+            </div>
+        </nav>
+
+        <div id="modal-perfil" class="modal desativado" onclick="fecharModalPerfilComCliqueFora(event)">
+            <div class="modal-conteudo painel">
+                <span class="fechar-modal" onclick="fecharModalPerfil()">&times;</span>
+                <h2>👤 Perfil do Usuário</h2>
+                
+                <div class="perfil-alinhamento">
+                    <div class="avatar-grande" id="avatar-perfil-grande">
+                        <span id="avatar-letras-grande">U</span>
+                    </div>
+                    
+                    <label for="perf-avatar-editar" class="btn-mudar-foto">📸 Alterar / Inserir Foto</label>
+                    <input type="file" id="perf-avatar-editar" accept="image/*" style="display:none;">
+                </div>
+
+                <div class="perfil-dados-lista">
+                    <p><strong>Nome:</strong> <span id="perf-nome">...</span></p>
+                    <p><strong>E-mail:</strong> <span id="perf-email">...</span></p>
+                    
+                    <div class="campo-edicao-perfil">
+                        <label><strong>Gênero:</strong></label>
+                        <select id="perf-genero-editar" onchange="atualizarGeneroPerfil(this.value)">
+                            <option value="Feminino">Feminino</option>
+                            <option value="Masculino">Masculino</option>
+                            <option value="Não-Binário">Não-Binário</option>
+                            <option value="Transgênero">Transgênero</option>
+                            <option value="Outro">Outro</option>
+                        </select>
+                    </div>
+                    
+                    <p style="margin-top: 15px;"><strong>Total de Memórias:</strong> <span id="perf-total">0</span></p>
+                </div>
+
+                <button onclick="fazerLogout()" class="btn-logout">Trancar Diário e Sair 🚪</button>
+            </div>
+        </div>
+
+        <main class="layout-grade">
+            
+            <aside class="coluna-lateral">
+                <div class="painel bloco-agenda">
+                    <h2>📌 Agenda e Lembretes</h2>
+                    <div class="inserir-lembrete-container">
+                        <input type="text" id="novo-lembrete-txt" placeholder="O que você precisa lembrar?">
+                        
+                        <div class="agenda-design-wrapper">
+                            <div class="agenda-card-input">
+                                <span class="agenda-icon">🗓️</span>
+                                <div class="agenda-input-info">
+                                    <label for="novo-lembrete-data">Data do Evento</label>
+                                    <input type="date" id="novo-lembrete-data">
+                                </div>
+                            </div>
+                            <div class="agenda-card-input">
+                                <span class="agenda-icon">⏰</span>
+                                <div class="agenda-input-info">
+                                    <label for="novo-lembrete-hora">Horário</label>
+                                    <input type="time" id="novo-lembrete-hora">
+                                </div>
+                            </div>
+                        </div>
+
+                        <button onclick="adicionarLembrete()">Agendar Compromisso +</button>
+                    </div>
+                    <ul id="lista-lembretes"></ul>
+                </div>
+
+                <div class="painel" style="margin-top: 20px;">
+                    <h2>Estilo & Cores</h2>
+                    
+                    <div class="config-item">
+                        <label>Temas Disponíveis:</label>
+                        <select id="select-tema" onchange="mudarTema(this.value)">
+                        </select>
+                    </div>
+
+                    <div class="config-item">
+                        <label>Tipografia:</label>
+                        <select id="select-fonte" onchange="mudarFonte(this.value)">
+                            <option value="'Georgia', serif">Clássica (Georgia)</option>
+                            <option value="'Arial', sans-serif">Moderna (Arial)</option>
+                            <option value="'Courier New', monospace">Máquina de Escrever</option>
+                            <option value="'Lucida Handwriting', cursive">Manuscrita Cursiva</option>
+                        </select>
+                    </div>
+                </div>
+            </aside>
+
+            <section class="coluna-principal">
+                <div class="painel">
+                    <h2>Escrever Nova Memória / Agenda</h2>
+                    <input type="text" id="titulo" placeholder="Título para o dia de hoje...">
+                    
+                    <div class="secao-perguntas">
+                        <div class="pergunta-item">
+                            <label>Como você se sente?</label>
+                            <div class="humor-seletores">
+                                <label><input type="radio" name="humor" value="Radiante ✨"> Radiante ✨</label>
+                                <label><input type="radio" name="humor" value="Feliz 😊" checked> Feliz 😊</label>
+                                <label><input type="radio" name="humor" value="Neutro 😐"> Neutro 😐</label>
+                                <label><input type="radio" name="humor" value="Cansado 😴"> Cansado 😴</label>
+                                <label><input type="radio" name="humor" value="Triste 😢"> Triste 😢</label>
+                            </div>
+                        </div>
+
+                        <div class="pergunta-item">
+                            <label>Como está o clima?</label>
+                            <div class="clima-seletores">
+                                <label><input type="radio" name="clima" value="Calor ☀️" checked> Calor ☀️</label>
+                                <label><input type="radio" name="clima" value="Frio ❄️"> Frio ❄️</label>
+                                <label><input type="radio" name="clima" value="Chuvoso 🌧️"> Chuvoso 🌧️</label>
+                                <label><input type="radio" name="clima" value="Agradável 🍃"> Agradável 🍃</label>
+                            </div>
+                        </div>
+
+                        <div class="pergunta-item">
+                            <label>Treinou hoje? 💪</label>
+                            <div class="humor-seletores">
+                                <label><input type="radio" name="treino" value="Sim, pago! ✅" checked> Sim, tá pago! ✅</label>
+                                <label><input type="radio" name="treino" value="Não treinei ❌"> Hoje foi descanso ❌</label>
+                            </div>
+                        </div>
+
+                        <div class="pergunta-item">
+                            <label>Seguiu a dieta/plano alimentar? (1 a 5):</label>
+                            <div class="escala-container">
+                                <span id="emoji-dieta-status">😐</span>
+                                <input type="range" id="dieta-escala" min="1" max="5" value="3" oninput="atualizarEscalaDieta(this.value)">
+                                <span id="valor-dieta" class="badge-escala">3 / 5</span>
+                            </div>
+                        </div>
+
+                        <div class="pergunta-item">
+                            <label>Alimentação geral saudável (1 a 5):</label>
+                            <div class="escala-container">
+                                <span id="emoji-alimentacao-status">🥪</span>
+                                <input type="range" id="alimentacao" min="1" max="5" value="3" oninput="atualizarEscalaAlimentacao(this.value)">
+                                <span id="valor-escala" class="badge-escala">3 / 5</span>
+                            </div>
+                        </div>
+
+                        <div class="pergunta-item">
+                            <label>Meta concluída do dia:</label>
+                            <input type="text" id="meta-dia" placeholder="Ex: Estudei programação...">
+                        </div>
+                    </div>
+
+                    <div class="pergunta-item">
+                        <label for="conteudo" style="font-size: 1.05rem; color: var(--cor-texto);">Quer desabafar?</label>
+                        <textarea id="conteudo" rows="5" placeholder="Escreva livremente sobre as tarefas ou sentimentos do dia aqui..."></textarea>
+                    </div>
+                    
+                    <label class="label-upload">
+                        📸 Adicionar foto a este post
+                        <input type="file" id="imagem" accept="image/*">
+                    </label>
+                    
+                    <button onclick="salvarPost()">Salvar Memória no Sistema 💾</button>
+                </div>
+
+                <div class="espacador-titulo">
+                    <h2>Minhas Linhas do Tempo</h2>
+                </div>
+                <div id="feed-posts"></div>
+            </section>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
