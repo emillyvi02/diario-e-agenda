@@ -1,5 +1,7 @@
+// VARIÁVEIS DO BANCO DE DADOS LOCAL
 let posts, usuariosCadastrados, contaLogada, configVisual, lembretes;
 
+// TRAVA DE SEGURANÇA: Se houver dados corrompidos de versões anteriores estruturais, reconstrói limpo.
 try {
     posts = JSON.parse(localStorage.getItem('diario_posts_v10')) || [];
     usuariosCadastrados = JSON.parse(localStorage.getItem('diario_usuarios_db_v10')) || [];
@@ -7,6 +9,7 @@ try {
     configVisual = JSON.parse(localStorage.getItem('diario_config_v10')) || { tema: 'vintage', fonte: "'Georgia', serif" };
     lembretes = JSON.parse(localStorage.getItem('diario_lembretes_v10')) || [];
 } catch (e) {
+    // Reset preventivo em caso de quebra de JSON no cache do navegador
     localStorage.clear();
     posts = []; usuariosCadastrados = []; contaLogada = null; lembretes = [];
     configVisual = { tema: 'vintage', fonte: "'Georgia', serif" };
@@ -15,6 +18,7 @@ try {
 let modoAutenticacao = 'login';
 let avatarCadastroBase64 = null; 
 
+// PALETAS DE CORES FEMININAS / OUTROS GENEROS (Sem Sapinho e Sem Moranguinho)
 const temasFemininoEOutros = {
     vintage: { label: "📜 Vintage Clássico", fundo: '#f4eae1', texto: '#2c2c2c', card: '#ffffff', botao: '#8b5a2b' },
     abelhinha: { label: "🐝 Abelhinha Vibrante", fundo: '#fffde7', texto: '#212121', card: '#ffffff', botao: '#fbc02d' }, 
@@ -27,6 +31,7 @@ const temasFemininoEOutros = {
     dark: { label: "🌙 Minimalista Noturno", fundo: '#121212', texto: '#e0e0e0', card: '#1e1e1e', botao: '#bb86fc' }
 };
 
+// PALETAS MASCULINAS (Sem Sapinho e Sem Moranguinho)
 const temasMasculinos = {
     azulBebe: { label: "🐳 Azul Bebê Suave", fundo: '#e0f2fe', texto: '#0369a1', card: '#ffffff', botao: '#7dd3fc' },
     cianoPastel: { label: "🧪 Ciano Pastel", fundo: '#e0f7fa', texto: '#006064', card: '#ffffff', botao: '#4dd0e1' },
@@ -146,6 +151,7 @@ function processarAutenticacao() {
     const email = document.getElementById('auth-email').value.trim().toLowerCase();
     const senha = document.getElementById('auth-senha').value.trim();
 
+    // Validação ultra direta e limpa para evitar bugs
     if (!email || !senha || (modoAutenticacao === 'cadastro' && (!nome || !genero))) {
         lancarToast('Por favor, preencha todos os campos obrigatórios!', 'aviso');
         return;
@@ -191,131 +197,291 @@ function carregarOpcoesDeTemasPorGenero() {
     const listaTemasUsar = (contaLogada && contaLogada.genero === 'Masculino') ? temasMasculinos : temasFemininoEOutros;
     
     Object.keys(listaTemasUsar).forEach(chave => {
-        const option = document.createElement('option');
-        option.value = chave;
-        option.innerText = listaTemasUsar[chave].label;
-        seletor.appendChild(option);
+        const opt = document.createElement('option');
+        opt.value = chave;
+        opt.innerText = listaTemasUsar[chave].label;
+        seletor.appendChild(opt);
     });
 
-    if (configVisual.tema && listaTemasUsar[configVisual.tema]) {
-        seletor.value = configVisual.tema;
-        mudarTema(configVisual.tema);
+    if (!listaTemasUsar[configVisual.tema]) {
+        configVisual.tema = 'vintage'; 
     }
+    seletor.value = configVisual.tema;
+    mudarTema(configVisual.tema);
 }
 
 function verificarSessao() {
-    const telaInicial = document.getElementById('tela-inicial');
-    const telaDiario = document.getElementById('tela-diario');
-    
     if (contaLogada) {
-        if (telaInicial) telaInicial.classList.add('desativado');
-        if (telaDiario) telaDiario.classList.remove('desativado');
-        atualizarElementosModal();
+        document.getElementById('tela-inicial').classList.add('desativado');
+        document.getElementById('tela-diario').classList.remove('desativado');
+        
         carregarOpcoesDeTemasPorGenero();
+
+        const avatarDiv = document.getElementById('avatar-topo-img');
+        if (contaLogada.avatar) {
+            avatarDiv.style.backgroundImage = `url('${contaLogada.avatar}')`;
+            document.getElementById('avatar-letras').innerText = '';
+        } else {
+            avatarDiv.style.backgroundImage = 'none';
+            document.getElementById('avatar-letras').innerText = contaLogada.nome.substring(0,2).toUpperCase();
+        }
+        
+        renderizarLembretes();
+        renderizarPosts();
     } else {
-        if (telaInicial) telaInicial.classList.remove('desativado');
-        if (telaDiario) telaDiario.classList.add('desativado');
+        document.getElementById('tela-inicial').classList.remove('desativado');
+        document.getElementById('tela-diario').classList.add('desativado');
     }
 }
 
-function atualizarElementosModal() {
-    if (!contaLogada) return;
-    
-    const perfNome = document.getElementById('perf-nome');
-    const perfEmail = document.getElementById('perf-email');
-    const avatarLetras = document.getElementById('avatar-letras');
-    const avatarLetrasGrande = document.getElementById('avatar-letras-grande');
-    const perfGeneroEditar = document.getElementById('perf-genero-editar');
-    
-    if (perfNome) perfNome.innerText = contaLogada.nome;
-    if (perfEmail) perfEmail.innerText = contaLogada.email;
-    if (perfGeneroEditar) perfGeneroEditar.value = contaLogada.genero;
-    
-    const primeiraLetra = contaLogada.nome.charAt(0).toUpperCase();
-    if (avatarLetras) avatarLetras.innerText = primeiraLetra;
-    if (avatarLetrasGrande) avatarLetrasGrande.innerText = primaLetra = primeiraLetra;
-    
-    const avatarTopoImg = document.getElementById('avatar-topo-img');
-    const avatarPerfilGrande = document.getElementById('avatar-perfil-grande');
+function adicionarLembrete() {
+    const campo = document.getElementById('novo-lembrete-txt');
+    const campoData = document.getElementById('novo-lembrete-data');
+    const campoHora = document.getElementById('novo-lembrete-hora');
 
-    if (contaLogada.avatar) {
-        if (avatarTopoImg) {
-            avatarTopoImg.style.backgroundImage = `url(${contaLogada.avatar})`;
-            avatarTopoImg.innerText = '';
-        }
-        if (avatarPerfilGrande) {
-            avatarPerfilGrande.style.backgroundImage = `url(${contaLogada.avatar})`;
-            avatarPerfilGrande.innerText = '';
-        }
-    } else {
-        if (avatarTopoImg) {
-            avatarTopoImg.style.backgroundImage = 'none';
-            avatarTopoImg.innerText = primeiraLetra;
-        }
-        if (avatarPerfilGrande) {
-            avatarPerfilGrande.style.backgroundImage = 'none';
-            avatarPerfilGrande.innerText = primeiraLetra;
-        }
+    const texto = campo.value.trim();
+    if (!texto) {
+        lancarToast('Digite a descrição do lembrete!', 'aviso');
+        return;
     }
+
+    const dataFormatada = campoData.value ? new Date(campoData.value + 'T00:00:00').toLocaleDateString('pt-BR') : 'Qualquer dia';
+    const horaFormatada = campoHora.value || 'Sem hora';
+
+    const novoLembrete = {
+        id: Date.now(),
+        donoEmail: contaLogada.email,
+        texto: texto,
+        data: dataFormatada,
+        hora: horaFormatada
+    };
+
+    lembretes.push(novoLembrete);
+    localStorage.setItem('diario_lembretes_v10', JSON.stringify(lembretes));
+    
+    campo.value = '';
+    campoData.value = '';
+    campoHora.value = '';
+    
+    renderizarLembretes();
+    lancarToast('Lembrete agendado com sucesso!', 'sucesso');
 }
 
-function salvarDadosUsuarioNoDB() {
-    if (!contaLogada) return;
-    const index = usuariosCadastrados.findIndex(u => u.email === contaLogada.email);
-    if (index !== -1) {
-        usuariosCadastrados[index] = contaLogada;
-        localStorage.setItem('diario_usuarios_db_v10', JSON.stringify(usuariosCadastrados));
-        localStorage.setItem('diario_sessao_ativa_v10', JSON.stringify(contaLogada));
+function removerLembrete(id) {
+    lembretes = lembretes.filter(l => l.id !== id);
+    localStorage.setItem('diario_lembretes_v10', JSON.stringify(lembretes));
+    renderizarLembretes();
+    lancarToast('Compromisso removido da agenda.', 'aviso');
+}
+
+function renderizarLembretes() {
+    const lista = document.getElementById('lista-lembretes');
+    if (!lista) return;
+    lista.innerHTML = '';
+    const meusLembretes = lembretes.filter(l => l.donoEmail === contaLogada.email);
+
+    if (meusLembretes.length === 0) {
+        lista.innerHTML = '<li style="font-size:0.8rem; opacity:0.5; text-align:center; padding:15px;">Nenhum compromisso agendado.</li>';
+        return;
     }
-}
 
-function fazerLogout() {
-    contaLogada = null;
-    localStorage.removeItem('diario_sessao_ativa_v10');
-    fecharModalPerfil();
-    verificarSessao();
-    lancarToast('Diário trancado com sucesso!', 'info');
-}
-
-function mudarFonte(fonte) {
-    document.body.style.fontFamily = fonte; 
-    configVisual.fonte = fonte;
-    localStorage.setItem('diario_config_v10', JSON.stringify(configVisual));
-}
-
-function mudarTema(chaveTema) {
-    const listaTemasUsar = (contaLogada && contaLogada.genero === 'Masculino') ? temasMasculinos : temasFemininoEOutros;
-    const temaEscolhido = listaTemasUsar[chaveTema] || listaTemasUsar['vintage'];
-    
-    document.documentElement.style.setProperty('--cor-fundo', temaEscolhido.fundo);
-    document.documentElement.style.setProperty('--cor-texto', temaEscolhido.texto);
-    document.documentElement.style.setProperty('--cor-card', temaEscolhido.card);
-    document.documentElement.style.setProperty('--cor-botao', temaEscolhido.botao);
-    
-    configVisual.tema = chaveTema;
-    localStorage.setItem('diario_config_v10', JSON.stringify(configVisual));
-}
-
-function atualizarGeneroPerfil(novoGenero) {
-    if (!contaLogada) return;
-    contaLogada.genero = novoGenero;
-    salvarDadosUsuarioNoDB();
-    carregarOpcoesDeTemasPorGenero();
-    lancarToast('Gênero e catálogo de temas atualizados!', 'sucesso');
+    meusLembretes.forEach(l => {
+        const li = document.createElement('li');
+        li.className = 'item-lembrete';
+        li.innerHTML = `
+            <div class="item-lembrete-topo">
+                <span>📌 ${l.texto}</span>
+                <button class="btn-remover-lembrete" onclick="removerLembrete(${l.id})">❌</button>
+            </div>
+            <div class="item-lembrete-prazo">🗓️ Para: ${l.data} às ⏰ ${l.hora}</div>
+        `;
+        lista.appendChild(li);
+    });
 }
 
 function abrirModalPerfil() {
-    const modal = document.getElementById('modal-perfil');
-    if (modal) modal.classList.remove('desativado');
+    document.getElementById('modal-perfil').classList.remove('desativado');
+    atualizarElementosModal();
+    lancarToast('Visualizando Perfil do Usuário', 'info');
 }
 
 function fecharModalPerfil() {
-    const modal = document.getElementById('modal-perfil');
-    if (modal) modal.classList.add('desativado');
+    document.getElementById('modal-perfil').classList.add('desativado');
 }
 
-function fecharModalPerfilComCliqueFora(event) {
-    if (event.target.id === 'modal-perfil') {
-        fecharModalPerfil();
+function fecharModalPerfilComCliqueFora(e) {
+    if (e.target.id === 'modal-perfil') fecharModalPerfil();
+}
+
+function atualizarElementosModal() {
+    document.getElementById('perf-nome').innerText = contaLogada.nome;
+    document.getElementById('perf-email').innerText = contaLogada.email;
+    document.getElementById('perf-genero-editar').value = contaLogada.genero;
+    
+    const grandeAvatar = document.getElementById('avatar-perfil-grande');
+    if (contaLogada.avatar) {
+        grandeAvatar.style.backgroundImage = `url('${contaLogada.avatar}')`;
+        document.getElementById('avatar-letras-grande').innerText = '';
+    } else {
+        grandeAvatar.style.backgroundImage = 'none';
+        document.getElementById('avatar-letras-grande').innerText = contaLogada.nome.substring(0,2).toUpperCase();
+    }
+}
+
+function atualizarGeneroPerfil(novoGenero) {
+    contaLogada.genero = novoGenero;
+    salvarDadosUsuarioNoDB();
+    carregarOpcoesDeTemasPorGenero();
+    lancarToast(`Gênero modificado para: ${novoGenero}. Paleta atualizada!`, 'sucesso');
+}
+
+function salvarDadosUsuarioNoDB() {
+    localStorage.setItem('diario_sessao_ativa_v10', JSON.stringify(contaLogada));
+    usuariosCadastrados = usuariosCadastrados.map(u => u.email === contaLogada.email ? contaLogada : u);
+    localStorage.setItem('diario_usuarios_db_v10', JSON.stringify(usuariosCadastrados));
+}
+
+function fazerLogout() {
+    localStorage.removeItem('diario_sessao_ativa_v10');
+    contaLogada = null;
+    fecharModalPerfil();
+    verificarSessao();
+    lancarToast('Sessão encerrada com segurança!', 'aviso');
+}
+
+function salvarPost() {
+    const titulo = document.getElementById('titulo').value.trim();
+    const conteudo = document.getElementById('conteudo').value.trim();
+    const humor = document.querySelector('input[name="humor"]:checked').value;
+    const clima = document.querySelector('input[name="clima"]:checked').value;
+    const treino = document.querySelector('input[name="treino"]:checked').value;
+    const dietaNota = document.getElementById('dieta-escala').value;
+    const alimentacaoNota = document.getElementById('alimentacao').value;
+    const meta = document.getElementById('meta-dia').value.trim();
+    const inputFile = document.getElementById('imagem').files[0];
+
+    if (!conteudo) {
+        lancarToast('Escreva algo na memória antes de salvar!', 'aviso');
+        return;
+    }
+
+    const novoPost = {
+        id: Date.now(),
+        donoEmail: contaLogada.email,
+        data: new Date().toLocaleDateString('pt-BR'),
+        hora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+        titulo: titulo || 'Sem Título',
+        conteudo, humor, clima, treino, 
+        dietaTexto: padraoEmojisDieta[dietaNota],
+        alimentacaoTexto: padraoEmojisAlimentacao[alimentacaoNota],
+        meta: meta || 'Não registrada',
+        imagem: null
+    };
+
+    if (inputFile) {
+        const reader = new FileReader();
+        reader.onloadend = function() {
+            novoPost.imagem = reader.result;
+            posts.unshift(novoPost);
+            limparFormulario();
+        };
+        reader.readAsDataURL(inputFile);
+    } else {
+        posts.unshift(novoPost);
+        limparFormulario();
+    }
+}
+
+function limparFormulario() {
+    localStorage.setItem('diario_posts_v10', JSON.stringify(posts));
+    renderizarPosts();
+    document.getElementById('titulo').value = '';
+    document.getElementById('conteudo').value = '';
+    document.getElementById('meta-dia').value = '';
+    document.getElementById('imagem').value = '';
+    document.getElementById('alimentacao').value = 3;
+    document.getElementById('dieta-escala').value = 3;
+    atualizarEscalaAlimentacao(3);
+    atualizarEscalaDieta(3);
+    lancarToast('Nova memória arquivada na Linha do Tempo!', 'sucesso');
+}
+
+function renderizarPosts() {
+    const feed = document.getElementById('feed-posts');
+    if (!feed) return;
+    feed.innerHTML = '';
+
+    const meusPosts = posts.filter(p => p.donoEmail === contaLogada.email);
+    document.getElementById('perf-total').innerText = meusPosts.length;
+
+    if (meusPosts.length === 0) {
+        feed.innerHTML = '<p style="text-align:center; opacity:0.4; padding:40px;">Sua Linha do Tempo está limpa.</p>';
+        return;
+    }
+
+    meusPosts.forEach(post => {
+        const div = document.createElement('div');
+        div.className = 'post';
+        div.innerHTML = `
+            <div class="post-topo">
+                <span>📅 ${post.data} às ${post.hora}</span>
+            </div>
+            <h3 style="margin-bottom:10px;">${post.titulo}</h3>
+            
+            <div class="post-tags">
+                <span class="tag">Humor: ${post.humor}</span>
+                <span class="tag">Clima: ${post.clima}</span>
+                <span class="tag">💪 Treino: ${post.treino || 'Não informado'}</span>
+                <span class="tag">🍎 Dieta: ${post.dietaTexto || 'Moderada'}</span>
+                <span class="tag">🥗 Alimentação: ${post.alimentacaoTexto || 'Equilibrada'}</span>
+                <span class="tag">🎯 Meta: ${post.meta}</span>
+            </div>
+
+            <p style="white-space:pre-wrap; line-height:1.6;">${post.conteudo}</p>
+            ${post.imagem ? `<img src="${post.imagem}" class="post-img">` : ''}
+            <br>
+            <button class="btn-deletar" onclick="deletarPost(${post.id})">Apagar Registro 🗑️</button>
+        `;
+        feed.appendChild(div);
+    });
+}
+
+function deletarPost(id) {
+    if (confirm("Quer deletar permanentemente esta memória?")) {
+        posts = posts.filter(p => p.id !== id);
+        localStorage.setItem('diario_posts_v10', JSON.stringify(posts));
+        renderizarPosts();
+        lancarToast('Registro removido da Linha do Tempo.', 'aviso');
+    }
+}
+
+function mudarTema(nomeTema) {
+    const listaTemasUsar = (contaLogada && contaLogada.genero === 'Masculino') ? temasMasculinos : temasFemininoEOutros;
+    const t = listaTemasUsar[nomeTema] || listaTemasUsar.vintage;
+    
+    const root = document.documentElement;
+    root.style.setProperty('--cor-fundo', t.fundo);
+    root.style.setProperty('--cor-texto', t.texto);
+    root.style.setProperty('--cor-card', t.card);
+    root.style.setProperty('--cor-botao', t.botao);
+    
+    const escuros = ['oceano', 'dark', 'vintage', 'azulAco', 'verdeExército', 'cinzaUrbano'];
+    root.style.setProperty('--cor-botao-texto', (escuros.includes(nomeTema) && contaLogada && contaLogada.genero === 'Masculino') ? '#ffffff' : (nomeTema === 'oceano' || nomeTema === 'dark' ? '#ffffff' : '#2c2c2c'));
+
+    configVisual.tema = nomeTema;
+    localStorage.setItem('diario_config_v10', JSON.stringify(configVisual));
+    
+    if(document.readyState === "complete") {
+        lancarToast(`Visual alterado para: ${t.label}`, 'sucesso');
+    }
+}
+
+function mudarFonte(familiaFonte) {
+    document.documentElement.style.setProperty('--fonte-diario', familiaFonte);
+    configVisual.fonte = familiaFonte;
+    localStorage.setItem('diario_config_v10', JSON.stringify(configVisual));
+    
+    if(document.readyState === "complete") {
+        lancarToast('Fonte tipográfica alterada!', 'sucesso');
     }
 }
